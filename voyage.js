@@ -4,15 +4,10 @@
 
 // could encrypt text stupidly easily by making text string into ASCII strings
 
-var e_bin="01011010101001010101111000011100101101000";
+var e = "This is your Call of Duty";
 
-var decrypted = e_bin, // some binary data (currently 16-bit)
-    processing = "", // bit string in processing
-    encryptedS = "", // bit string encrypted, but only the input string
-    encryptedA = "", // only encrypted algorithm
-    encrypted = "", // some encrypted binary data
-    empty = 0, // null int value
-    key = "0110100110010110"; // usually will be the previous message tho
+var processing, // bit string in processing
+    key; // encryption key
     
 var zerofiller = "00000000000000";
 var onefiller  = "11111111111111";
@@ -22,9 +17,31 @@ function rset(n){
     return rxe;
 }
 
+function encode(words){
+    // encodes string to binary ASCII string
+    wordsList = words.split("");
+    bits = "";
+    wordsList.forEach(function(letter){
+        mlk = "0"+parseInt(letter.charCodeAt()).toString(2);
+        bits += zerofiller.substr(0, 8 - mlk.length) + mlk;
+    });
+
+    return bits;
+}
+
+function decode(bits){
+    // decodes binary ASCII to string
+    words = "";
+    bitsList = bits.match(rset(8));
+    bitsList.forEach(function(code){
+        words += String.fromCharCode(parseInt(code,2));
+    });
+    return words;
+}
+
 // G elements
 function adder(n){ // formerly "inverse", when applied only to 1-bit string objects
-    // this function is finalized!
+    
     stringBits = processing.match(rset(n));
     totalBits = "";
 
@@ -39,7 +56,7 @@ function adder(n){ // formerly "inverse", when applied only to 1-bit string obje
     processing = totalBits;
 }
 function rAdder(n){ // inverse function of adder()
-    // this function is finalized!
+    
     stringBits = processing.match(rset(n));
     totalBits = "";
 
@@ -59,7 +76,7 @@ function rAdder(n){ // inverse function of adder()
     processing = totalBits;
 }
 function cycle(n){
-    // this function is finalized!
+    
     stringBits = processing.match(rset(n));
     totalBits = "";
 
@@ -70,7 +87,7 @@ function cycle(n){
     processing = totalBits;
 }
 function rCycle(n){
-    // this function is finalized!
+    
     stringBits = processing.match(rset(n));
     totalBits = "";
 
@@ -82,17 +99,17 @@ function rCycle(n){
 }
 
 function reverse(n){
-    // this function is finalized!
+    
     stringBits = processing.match(rset(n));
     processing = stringBits.reverse().join("");
 }
 function rReverse(n){
-    // this function is finalized!
+    
     reverse(n);
 }
 
 function split(n){
-    // this function is finalized!
+    
     bitsarray = new Array(n);
     for(i=0;i<n;i++){bitsarray[i]=""}
     for(i=0;i<processing.length;i++){
@@ -101,7 +118,7 @@ function split(n){
     processing=bitsarray.join("");
 }
 function rSplit(n){
-    // this function is finalized!
+    
     bitsarray = processing.match(rset(processing.length / n));
     processing="";
     for(i=0;i<bitsarray.join("").length;i++){
@@ -129,11 +146,28 @@ function rs_g(){
     return random_seed.toString();
 }
 
-function G(random_seed){
-    split_seed = random_seed.split(" ");
+function key_norm(size, key){
+    key = parseInt(key.split(" ").join("")).toString(2);
 
-    processing = decrypted;
-    adder(8);rAdder(8); // for normalization purposes
+    key_size = key.length;
+    diff = size % key_size;
+    return key.repeat(parseInt((size - diff) / key_size)) + key.substr(0, diff);
+}
+
+function bit_norm(){
+    console.log(processing);
+    adder(8);
+    rAdder(8);
+}
+
+function G(binary, random_seed){
+    split_seed = random_seed.split(" ");
+    
+    console.log(processing);
+
+    processing = binary;
+    console.log("hi " + processing);
+    bit_norm();
     split_seed.forEach(function(pair){
         if      (pair[0] == "0"){adder(parseInt(pair[1]))}
         else if (pair[0] == "1"){cycle(parseInt(pair[1]))}
@@ -141,15 +175,16 @@ function G(random_seed){
         else if (pair[0] == "3"){split(parseInt(pair[1]))}
     });
 
-    encrypted = processing;
-    return encrypted;
+    return processing;
 }
 
 function r_G(binary, random_seed){
     split_seed = random_seed.split(" ").reverse();
+    
+    console.log(binary);
 
     processing = binary;
-    adder(8);rAdder(8);
+    bit_norm();
     split_seed.forEach(function(pair){
         if      (pair[0] == "0"){rAdder(parseInt(pair[1]))}
         else if (pair[0] == "1"){rCycle(parseInt(pair[1]))}
@@ -157,59 +192,34 @@ function r_G(binary, random_seed){
         else if (pair[0] == "3"){rSplit(parseInt(pair[1]))}
     });
 
-    decrypted = processing;
-    return decrypted;
+    return processing;
 }
 
 String.prototype.repeat=function(num){return new Array(num+1).join(this)}
 
 function H(bits, key){
-    key=key.split(" ").join("");
+    key = key_norm(bits.length, key);
 
-    // this can be later developed into a more secure algorithm, but for now it's very simple: an xor operation
-    mln=bits.length;
-    xln=key.length;
-    exr=mln%xln;
-    key=key.repeat(parseInt((mln-exr)/xln))+key.substr(0,exr);
-
-    bits=bits.split("");
-    key=key.split("");
-    result=[];
-    for(i=0;i<mln;i++){
-        if(bits[i]+key[i]==1){result.push("1")}
-        else{result.push("0")}
+    result = "";
+    for(i=0; i<bits.length; i++){
+        if(bits[i] == key[i]){result += "1"}
+        else{result += "0"}
     }
     
-    return result.join("");
+    return result;
 }
     
-function r_H(bits,key){
-    // for now, the H hash function is its inverse; an xor operation
-    return H(bits,key);
+function r_H(bits, key){
+    // H is its own inverse
+    return H(bits, key);
 }
-function encryptor(binary){
-    decrypted = binary;
-    key = rs_g();
 
-    return H(G(key),key).toString() + " [" + key + "]";
+function encryptor(text, key){
+    return H(G(encode(text), key), key).toString();
 }
 
 function decryptor(binary,key){
-    deckey = key.split(" ").reverse().join(" ");
-
-    decrypted=binary;
-    key = key;
-
-    return r_H(r_G(key),key).toString();
+    return decode(r_G(r_H(binary, key), key).toString());
 }
-
-console.log(decrypted);
-console.log(G(rs_g()));
-
-/* main encryption process
-   - Use the key to generate a one-time bit-flicking encryption algorithm. This is G
-   - Use the key to generate a one-time bit-switching encryption algorithm. This is H.
-   - The encrypted binary X = H(G(plainText));
-*/
 
 
