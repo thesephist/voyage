@@ -42,8 +42,8 @@ function adder(n){ // formerly "inverse", when applied only to 1-bit string obje
     stringBits.forEach(function(bitstring){
         e = (parseInt(bitstring, 2) + 1).toString(2);
         if (e.length<n) {
-	    e=zerofiller.substr(0, n - e.length) + e
-	}
+            e=zerofiller.substr(0, n - e.length) + e
+        }
         if (e.length == n + 1) {
             e = zerofiller.substr(0, n)
         }
@@ -64,8 +64,8 @@ function rAdder(n){ // inverse function of adder()
             e = (parseInt(bitstring, 2) - 1).toString(2);
         }
         if (e.length<n){
-	    e = zerofiller.substr(0, n - e.length) + e
-	}
+            e = zerofiller.substr(0, n - e.length) + e
+        }
         if (e.length == n + 1) {
             e = zerofiller.substr(0, n);
         }
@@ -108,7 +108,7 @@ function rReverse(n){
 function split(n){    
     bitsarray = new Array(n);
     for (i = 0; i < n; i++) {
-	bitsarray[i] = ""
+        bitsarray[i] = ""
     }
     for (i = 0; i < processing.length; i++) {
         bitsarray[i % n] += processing[i]
