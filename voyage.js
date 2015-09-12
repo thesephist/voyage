@@ -130,7 +130,7 @@ var random_seed;
 function rs_g(){
     // random key generator
     random_seed = "";
-    digits = Math.floor((Math.random() * 4) + 4) * 2 + 1; // digit # from 100 to 200
+    digits = Math.floor((Math.random() * 24) + 24) * 2 + 1; // digit # from 100 to 200
     for(i=0; i < digits; i++){
         if(i % 2 == 0){
             random_seed += Math.floor((Math.random() * 4)).toString();
@@ -155,8 +155,6 @@ function key_norm(size, key){
 }
 
 function bit_norm(){
-    console.log(processing);
-    
     adder(8);
     rAdder(8);
 }
@@ -164,10 +162,7 @@ function bit_norm(){
 function G(binary, random_seed){
     split_seed = random_seed.split(" ");
     
-    console.log(processing);
-
     processing = binary;
-    console.log("hi " + processing);
     bit_norm();
     split_seed.forEach(function(pair){
         if      (pair[0] == "0"){adder(parseInt(pair[1]))}
@@ -181,8 +176,6 @@ function G(binary, random_seed){
 
 function r_G(binary, random_seed){
     split_seed = random_seed.split(" ").reverse();
-    
-    console.log(binary);
     
     processing = binary;
     bit_norm();
@@ -221,7 +214,34 @@ function encryptor(text, key){
     return H(G(encode(text), key), key).toString();
 }
 
-function decryptor(binary,key){
+function decryptor(binary, key){
     return decode(r_G(r_H(binary, key), key).toString());
 }
+
+function encryptorx(words, key){
+    // returns binary data
+    datastream = encryptor(words, key).match(rset(8));
+    var buf = new ArrayBuffer(datastream.length);
+    var data = new DataView(buf, 0);
+
+    for (i=0; i<datastream.length; i++) {
+        data.setInt8(i, parseInt(datastream[i], 2));
+    }
+    return buf;
+}
+
+function decryptorx(data, key){
+    // takes binary data
+    var buf = data;
+    var view = new DataView(buf, 0);
+    var str = "";
+
+    for (i=0; i<buf.byteLength; i++) {
+        bits = view[i].toString(2);
+        str += zerofiller.substr(0, 8 - bits.length) + bits;
+    }
+    return decryptor(str, key);
+}
+
+
 
