@@ -7,7 +7,7 @@ String.prototype.repeat = function(num) {
     return new Array(num + 1).join(this)
 }
 
-var nbit = 64; // allows for 8, 16, 32, 64, or 128-bit ISAC encryption
+var nbit = 32; // allows for 8, 16, 32-bit ISAC encryption
 var zerofiller = "0".repeat(nbit + 1);
 var onefiller  = "1".repeat(nbit + 1);
 
