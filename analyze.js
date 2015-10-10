@@ -3,7 +3,7 @@
 
 // run through frequencies of 1, 2, 4-bit chunks using rest(n) and lists += 1 counters
 
-var bitstream = "";
+var bitstream = '';
 
 function rset(n){
     rxe = new RegExp(".{1," + n.toString() + "}","g");

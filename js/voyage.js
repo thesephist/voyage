@@ -1,11 +1,15 @@
-// Voyage Functional Encryption Software: VFES
+// Instance-Specific Algorithm Composition encryption, or ISAC
 // Copyright Linus Lee 2015
 
-var processing, // bit string in processing
-    key; // encryption key
+var processing; // bit string in processing
 
-var zerofiller = "00000000000000";
-var onefiller  = "11111111111111";
+String.prototype.repeat = function(num) {
+    return new Array(num + 1).join(this)
+}
+
+var nbit = 64; // allows for 8, 16, 32, 64, or 128-bit ISAC encryption
+var zerofiller = "0".repeat(nbit + 1);
+var onefiller  = "1".repeat(nbit + 1);
 
 function rset(n){
     rxe = new RegExp(".{1," + n.toString() + "}","g");
@@ -130,20 +134,17 @@ var random_seed;
 function rs_g(){
     // random key generator
     random_seed = "";
-    digits = Math.floor((Math.random() * 24) + 24) * 2 + 1; // digit # from 100 to 200
+    digits = Math.floor((Math.random() * 24) + 24) * 2; // digit # from 100 to 200
     for(i=0; i < digits; i++){
         if(i % 2 == 0){
             random_seed += Math.floor((Math.random() * 4)).toString();
         }else{
-            random_seed += Math.pow(2,Math.floor((Math.random() * 4))).toString(); // May be changed to 16-, 32- or 64- bit encryption later
+            random_seed += Math.pow(2, Math.floor(Math.random() * (Math.log(nbit) / Math.log(2) + 1))).toString();
             random_seed += " ";
         }
     }
 
-    // makes up for odd-numbered digit keys
-    if(random_seed.length%3!=0){random_seed+="2"};
-    
-    return random_seed.toString();
+    return random_seed.toString().trim();
 }
 
 function key_norm(size, key){
@@ -155,8 +156,8 @@ function key_norm(size, key){
 }
 
 function bit_norm(){
-    adder(8);
-    rAdder(8);
+    adder(nbit);
+    rAdder(nbit);
 }
 
 function G(binary, random_seed){
@@ -165,32 +166,31 @@ function G(binary, random_seed){
     processing = binary;
     bit_norm();
     split_seed.forEach(function(pair){
-        if      (pair[0] == "0"){adder(parseInt(pair[1]))}
-        else if (pair[0] == "1"){cycle(parseInt(pair[1]))}
-        else if (pair[0] == "2"){reverse(parseInt(pair[1]))}
-        else if (pair[0] == "3"){split(parseInt(pair[1]))}
+        if      (pair[0] == "0"){adder(parseInt(pair.substr(1)))}
+        else if (pair[0] == "1"){cycle(parseInt(pair.substr(1)))}
+        else if (pair[0] == "2"){reverse(parseInt(pair.substr(1)))}
+        else if (pair[0] == "3"){split(parseInt(pair.substr(1)))}
     });
     
     return processing;
 }
 
 function r_G(binary, random_seed){
-    split_seed = random_seed.split(" ").reverse();
-    
+    split_seed = random_seed.split("").reverse().join("").split(" ");
+    for (i=0; i<split_seed.length; i++) {
+        split_seed[i] = split_seed[i].split("").reverse().join("");
+    }
+
     processing = binary;
     bit_norm();
     split_seed.forEach(function(pair){
-        if      (pair[0] == "0"){rAdder(parseInt(pair[1]))}
-        else if (pair[0] == "1"){rCycle(parseInt(pair[1]))}
-        else if (pair[0] == "2"){rReverse(parseInt(pair[1]))}
-        else if (pair[0] == "3"){rSplit(parseInt(pair[1]))}
+        if      (pair[0] == "0"){rAdder(parseInt(pair.substr(1)))}
+        else if (pair[0] == "1"){rCycle(parseInt(pair.substr(1)))}
+        else if (pair[0] == "2"){rReverse(parseInt(pair.substr(1)))}
+        else if (pair[0] == "3"){rSplit(parseInt(pair.substr(1)))}
     });
     
     return processing;
-}
-
-String.prototype.repeat = function(num) {
-    return new Array(num + 1).join(this)
 }
 
 function H(bits, key) {
@@ -211,15 +211,19 @@ function r_H(bits, key){
 }
 
 function encryptor(text, key){
+    if (key == undefined) {
+        console.warn("Please specify an encryption key");
+        return false;
+    }
     return H(G(encode(text), key), key).toString();
 }
 
 function decryptor(binary, key){
-    return decode(r_G(r_H(binary, key), key).toString());
+    return decode(r_G(r_H(binary, key), key).toString()).split('\u0000').join("");
 }
 
 function encryptorx(words, key){
-    // returns binary data
+    // returns binary buffer
     datastream = encryptor(words, key).match(rset(8));
     var buf = new ArrayBuffer(datastream.length);
     var data = new DataView(buf, 0);
@@ -242,6 +246,4 @@ function decryptorx(data, key){
     }
     return decryptor(str, key);
 }
-
-
 
