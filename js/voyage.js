@@ -210,15 +210,37 @@ function r_H(bits, key){
     return H(bits, key);
 }
 
-function encryptor(text, key){
+function encryptor(text, key, option){
     if (key == undefined) {
         console.warn("Please specify an encryption key");
         return false;
     }
-    return H(G(encode(text), key), key).toString();
+    reply = H(G(encode(text), key), key).toString();
+    if (option == 'hex') {
+        hexply = '';
+        reply = reply.match(rset(8));
+        reply.forEach(function(octa) {
+            addin = parseInt(octa, 2).toString(16);
+            if (addin.length == 1) {
+                hexply += '0';
+            }
+            hexply += addin;
+        });
+        return hexply
+    } else {
+        return reply;
+    }
 }
 
-function decryptor(binary, key){
+function decryptor(binary, key, option){
+    if (option == 'hex') {
+        hexinary = binary.match(rset(2));
+        binary = '';
+        hexinary.forEach(function(octa) {
+          addin = parseInt(octa, 16).toString(2);
+          binary += '0'.repeat(8 - addin.length) + addin;
+        });
+    }
     return decode(r_G(r_H(binary, key), key).toString()).split('\u0000').join("");
 }
 
