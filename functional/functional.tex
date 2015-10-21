@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+\title{Secure encryption and cryptographic hashing using ad-hoc random algorithm generation}
+\author{Linus Lee}
+\date{\today}
+\usepackage{amssymb, amsmath}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  One of the simplest methods of perfectly random encryption is the one-time pad, using a random, infinite sequence of numbers and modular arithmetic to embed plaintext as noise on top of the random sequence. The one-time pad, while theoretically impossible to break, suffers from major flaws that prevent it from being used in practice due to its vulnerability. In this article we introduce a method of generating ad-hoc encryption functions for each instance of encryption from a very small key that effectively produces a completely random output similar to a one-time pad, while eliminating many of the greatest vulnerabilities and practical barriers of the one-time pad encryption. In addition, we also find that when used as a cryptographic hash function, the ad-hoc algorithm is collision-resistant and has advantages over current SHA-1 or MD5 implementations.
+\end{abstract}
+
+\tableofcontents
+
+\section{The one-time pad and its vulnerabilities}
+
+Laying practicality aside and looking at pure cryptographic security, the one-time pad (OTP) is one of the most secure forms of encryption. In a one-time pad, the plaintext is superimposed on top of an equal-size, completely random piece of data, essentially rendering the encrypted data completely indistinguishable from a random data stream. However, OTP itself is unfit for practical cryptographical use because of its requirement of a completely random stream of data as long as the data being encrypted.
+
+In past uses of OTP encryption, re-using "random" data or using a pseudorandom sequence with some predictability has lead to breakable encryption. Besides the complexity of generating a sequence of random data of substantial size, a random sequence megabytes or potentially gigabytes long also poses problems in key transfers, as not only will the keys have to be transferred, but the integrity of the keys will have to be checked, and these keys will have to be transferred for each new transfer of a piece of plaintext. OTP's greatest practial issues in execution are these, that the indefinitely long encryption key will first have to be randomly generated, then be transferred securely and entirely.
+
+OTP's greatest weakness is thus its key, and specifically its length. Were it possible to replicate the security of OTP encryption with keys less than a kilobyte long for any data set, such an encryption method would be functionally identical to OTP while resolving its key problem.
+
+\section{Functional encryption}
+
+Traditional methods of encrytion uses a pre-determined algorithm, taking the encryption key and the plaintext as parameters. Indeed, traditional encryption methods are defined by such algorithms, from simple MD5 hashes to complex RSA ciphers.
+
+\subsection{Methods of instance-specific algorithm composition (ISAC) using bit-flicking}
+
+\section{Structure of the ISAC0 stack}
+
+\section{Effective Security}
+
+\subsection{Overcoming OTP encryption's vulnerabilities}
+% ISAC is as secure as OTP -- when operated on /dev/null it produces output completely random, given a random rs_g
+% ISAC reduces the size of key -- 1024- or 2048-bit keys effectively eliminate any patterns, and therefore also eliminates the difficulty of getting a long completely random sequence
+% Solves authentication problem -- ISAC is also a secure cryptographic hash function, hence a string of 32-bit zeros in the header of a file of a 64-bit ISAC0-encrypted payload, for example, can authenticate. 
+
+\subsection{Statistical security}
+% Statistical security. duh
+
+\subsection{Brute-force computational overhead compared to RSA}
+% Computational benefits and hardware optimization benefits for small, multiple cores with a set CPU cache from ability to be heavily multithreaded
+% Computational overhead with optimized C binary on multithreaded workload, by making each n-bit input a separate thread where n is the number of bits in a block (e.g. 64 in a 64-bit ISAC).
+
+\section{ISAC0 as a cryptographic hash}
+
+\subsection{Chaotic behavior and collision resistance}
+% Chaotic behavior - produces random output from an all-zeroes input stream
+%   Consequentially, it is a one-way function
+%   Consequentially, it is difficult to match a message to another message with the same hash
+%   Consequentially, it is not vulnerable to a hash collision (has to be looked into further)
+
+\subsection{Resistance to time-memory tradeoff}
+% Further investigation needed here
+
+\section{Conclusions}
+
+\end{document}

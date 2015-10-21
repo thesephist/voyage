@@ -131,10 +131,12 @@ function rSplit(n){
 // Other Modules:
 var random_seed;
 
-function rs_g(){
+function rs_g(lower, upper){
     // random key generator
+    if (lower == undefined) {lower = 76}
+    if (upper == undefined) {upper = 150}
     random_seed = "";
-    digits = Math.floor((Math.random() * 24) + 24) * 2; // digit # from 100 to 200
+    digits = Math.floor((Math.random() * parseInt(upper / 2)) + parseInt(lower / 2)) * 2; // digit # from 100 to 200
     for(i=0; i < digits; i++){
         if(i % 2 == 0){
             random_seed += Math.floor((Math.random() * 4)).toString();
