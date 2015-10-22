@@ -18,6 +18,7 @@ function rset(n){
 
 function encode(words){
     // encodes string to binary ASCII string
+    words = words.replace(/[^\x20-\x7E]+/g, ''); // take out non-ASCII characters. They cause trouble.
     wordsList = words.split("");
     bits = "";
     wordsList.forEach(function(letter){

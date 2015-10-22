@@ -13,7 +13,7 @@ char processing[64]; // keeping this as a 64-character VEB for now.
 processing = ;// stuff
 
 int nbit;
-nbit = 32;
+nbit = 64;
 
 char zerofiller;
 zerofiller = repeat("0", nbit);
@@ -24,16 +24,6 @@ onefiller = repeat("1", nbit);
 char splitByN(char string) {
     // equiv. to string.match(rset(n));
     return char[64];
-}
-
-char encode(char string) {
-    // convert to binary string
-    return char binary;
-}
-
-char decode(char binary) {
-    // convert binary to char string
-    return char string;
 }
 
 // G elements
@@ -52,8 +42,6 @@ char reverse(int n, bool dir) {
 char split(int n, bool dir) {
 
 }
-
-
 
 int main(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
