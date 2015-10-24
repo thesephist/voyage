@@ -132,6 +132,23 @@ function rSplit(n){
 // Other Modules:
 var random_seed;
 
+function rs_w(keyword){
+    // random key generator
+    encodedK = encode(keyword);
+    if (keyword.length * 8 != encodedK.length) {
+        console.warn("Invalid encryption key!");
+        return rs_g(30, 50);
+    }
+    encodedK = encodedK.match(rset(8));
+    random_seed = "";
+
+    encodedK.forEach(function(letter){
+        random_seed += parseInt(letter.substr(1,2), 2).toString() + parseInt(letter.substr(3), 2).toString() + " ";
+    });
+
+    return random_seed.toString().trim();
+}
+
 function rs_g(lower, upper){
     // random key generator
     if (lower == undefined) {lower = 76}
