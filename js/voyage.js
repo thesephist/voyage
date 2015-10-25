@@ -143,10 +143,10 @@ function rs_w(keyword){
     random_seed = "";
 
     encodedK.forEach(function(letter){
-        random_seed += parseInt(letter.substr(1,2), 2).toString() + parseInt(letter.substr(3), 2).toString() + " ";
+        random_seed += parseInt(letter.substr(3,2), 2).toString() + Math.pow(2, Math.floor(parseInt(letter.substr(5), 2) / 8 * 5)).toString() + " ";
     });
 
-    return random_seed.toString().trim();
+    return random_seed.replace(/0 /g, "1 ").toString().trim();
 }
 
 function rs_g(lower, upper){
