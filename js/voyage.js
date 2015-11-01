@@ -1,8 +1,5 @@
 // Instance-Specific Algorithm Composition encryption, or ISAC
 // Copyright Linus Lee 2015
-//
-// NOTE: THIS IS A DEPRECATED VERSION OF THE ALGORITHM. 
-// PLEASE USE THE VOYAGE-X ALGORITHM WITH IMPROVED SECURITY
 
 var processing; // bit string in processing
 
