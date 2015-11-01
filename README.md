@@ -31,15 +31,6 @@ The principles behind generating __G__ is fairly simple. __G__ is a sequence of 
              // e.g. 11110000 => split(4) => 10101010
              // e.g. 11100010 => split(4) => 10101100
 
-## X-implementation
-
-A few weeks after the initial publication of Voyage, a critical weakness was noticed, that a single-bit change in the encrypted data only slightly modifies the plaintext, lending to possible attacks using slight modifications of plaintext and ciphertext. As a solution, a far more effective H-algorithm was implemented that uses the split(8) operator to effectively hash the output of __G__ in place.
-
-Ciphertexts from the X-implementation returns completely obfuscated data when decrypted with a single bit out of place. 
-
-For legacy support purposes (mainly as I still have files encrypted with the non-x version that I still need to access), the original algorithm is begin preserved.
-
-
 ## Project Roadmap
 
 voyage.js is a proof-of-concept script capable of producing a "binary" string output (as a concatenated array of 1's and 0's) and as a hex binary, along with a JavaScript buffer object. The JavaScript implementation also includes functions to safely encode and decode text input into binary useable within the voyage.js processors and key generator and interpretor methods from the built-in Math.random.
