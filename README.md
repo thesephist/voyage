@@ -1,6 +1,6 @@
 # Voyage
 
-Bit-level encryption library using instance-specific encryption algorithms
+Encryption library and protocol using a round of block-level bitwise operations with a sigle-block final round.
 
 ## Concept
 
@@ -12,10 +12,10 @@ Rather than a single universal algorithm using an instance-specific key to encry
 
 ### Structure
 
-1. For each instance, a key and a plaintext is given. The key is, in the current implementation, not a binary, but may be made to fit a 128 / 192 / 256-bit standard as one "word" of a key is a byte.
+1. For each instance, a key and a plaintext is given. The key is, in the current implementation, not a binary, but may be made to fit a 128 / 192 / 256-bit standard as one "word" of a key is a byte. (in the JavaScript library, an ASCII string can be parsed to a key with the rs\_w function)
 2. From the key, a single instance-specific encryption algorithm __G__ is generated via the "Generating Algorithm" below.
 3. __G__ is applied to the binary stream to be encrypted
-4. A second pass of a universal, pre-set juxtaposition function __H__ is applied to the binary stream. __H__ takes the binary stream and key as parameters and produces a single random binary stream which acts as the encrypted binary file / data.
+4. A second pass of a universal, pre-set juxtaposition function __H__ is applied to the binary stream. __H__ takes the binary stream and key as parameters and produces a single binary ciphertext which acts as the ciphertext output.
 
 ### Generating algorithm
 
@@ -37,13 +37,13 @@ A few weeks after the initial publication of Voyage, a critical weakness was not
 
 Ciphertexts from the X-implementation returns completely obfuscated data when decrypted with a single bit out of place, and a single change in the plaintext results in a far greater change in the ciphertext. 
 
-For legacy support purposes (mainly as I still have files encrypted with the non-x version that I still need to access), the original algorithm is begin preserved.
+For legacy support purposes (mainly as I still have files encrypted with the non-X version that I still need to access), the original algorithm is begin preserved.
 
 ## Project Roadmap
 
 voyage.js is a proof-of-concept script capable of producing a "binary" string output (as a concatenated array of 1's and 0's) and as a hex binary, along with a JavaScript buffer object. The JavaScript implementation also includes functions to safely encode and decode text input into binary useable within the voyage.js processors and key generator and interpretor methods from the built-in Math.random.
 
-A more optimized, C-based implementation is also being developed side-by-side that focuses on filesystem-level encryption rather than practical use in encrypted textual information. 
+A more optimized, C-based implementation is also being developed side-by-side that focuses on filesystem-level encryption rather than practical use in encrypting ASCII text. 
 
 For both implementations, the future conceptual roadmap includes, in no particular order,
 
@@ -51,6 +51,12 @@ For both implementations, the future conceptual roadmap includes, in no particul
 * Compute optimizations
 * Investigations into the cryptographic security of Voyage's encrypted outputs
 * Improved security in the H-algorithm implementations
+
+Other possible additions or changes in the algorithm include, in no particular order, 
+
+* Using a different sub-key for each block derived from a cryptographic hash of the key and plaintext of the preceding block
+* Using a lookup table in the __H__-algorithm for greater nonlinearity
+* Replacing or adding to the generator algorithm elements that use the key as a parameter
 
 - - -
 
