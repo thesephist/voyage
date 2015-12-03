@@ -9,7 +9,7 @@ int[512] getkeydirective(int key[512]) {
 
     for (i = 0; i < 512; i++) {
         // Returns 0 for key byte value 0-63, 1 for 64-127, 2 for 128-191, 3 for 192-255
-        key_directive[i] = floor(key[i] / 64);
+        key_directive[i] = floor(key[i] / 64.0f);
     }
 
     return key_directive[512];
@@ -67,6 +67,10 @@ int[8] add(int block[8], n) {
 
 // bitwise cycle to right
 int[8] cycle(int block[8], n) {
+    // need to be made to work with not just byte-units but all values of n
+    for (i = 0; i < 8; i++) {
+        block[i] = (block[i] % 2) * 128 + block[i] / 2;
+    }
     
     return block;
 }
@@ -125,7 +129,14 @@ int[8] radd(int block[8], n) {
 
 // cycle
 int[8] rcycle(int block[8], n) {
+    // need to be made to work with not just byte-units but all values of n
+    int has128;
     
+    for (i = 0; i < 8; i++) {
+        has128 = block[i] / 128;
+        block[i] = (block[i] - has128 * 128) * 2 + has128;
+    }
+
     return block;
 }
 
@@ -143,13 +154,39 @@ int[8] rsplit(int block[8], n) {
 
 // G round
 int[8] G(int block[8], int key_directive[], int key_width[]) {
+    int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
+
+    for (i = 0; i < key_size; i++) {
+        if (key_directive[i] == 0) {
+            block = add(block, key_width[i]);
+        } else if (key_directive[i] == 1) {
+            block = cycle(block, key_width[i]);
+        } else if (key_directive[i] == 2) {
+            block = reverse(block, key_width[i]);
+        } else if (key_directive[i] == 3) {
+            block = split(block, key_width[i]);
+        }
+    }
 
     return block;
 }
 
 // reverse G round
-int[8] RG(int block[8], int key_directive[], int key_width[]) {
-    
+int[8] RG(int block[8], int key_directive[], int key_width[]) { 
+    int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
+
+    for (i = 0; i < key_size; i++) {
+        if (key_directive[i] == 0) {
+            block = radd(block, key_width[i]);
+        } else if (key_directive[i] == 1) {
+            block = rcycle(block, key_width[i]);
+        } else if (key_directive[i] == 2) {
+            block = rreverse(block, key_width[i]);
+        } else if (key_directive[i] == 3) {
+            block = rsplit(block, key_width[i]);
+        }
+    }
+   
     return block;
 }
 
