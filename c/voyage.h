@@ -3,19 +3,36 @@
 
 /* HEADER FILE ROADMAP
  *
- * the 4 elementary functions each take an array of integers
- * .... and apply their bitwise modifications to each integer
+ * the 4 elementary functions each take an array of 64 bytes
+ * .... and apply their bitwise modifications to each group. Specifically...
+ *    - add(n) adds to every $n$th byte a factor (now 11),
+ *    - cycle(n) bitwise RCIRC every $n$th byte a factor (now 3),
+ *    - reverse(n) bitwise reverse every $n$th byte
+ *    - split(n) bitwise split every $n$th byte
  *
- * the divider function takes a block[8] and returns an array of integers to be operated upon. 
- *      if keywidth > 8, the list will only contain the 8-bit units that need to be modified.
+ * G cycles through them per the key, using instruction arrays from the key_directive and key_width
  *
- * the combinator function takes a block[8] and the output of modified divider(block) and combines it into ah new block[8]
- *
- * within a cycle, divider (modblock array)=> 4 elementary functions (modblock array, block array)=> combinator (new block)
+ * H cycles through one last time
  *
  */
 
-// using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth()
+/*
+ * We also need a keygen method of some kind that checks for trivial, easy-to-break keys and regens them
+ */
+
+// using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
+
+static const unsigned char reverseTable[] = {
+    // stuff here
+};
+
+static const unsigned char splitTable[] = {
+    // stuff here
+};
+
+static const unsigned char rsplitTable[] = {
+    // stuff here
+};
 
 // return key_directives (list of one of 4 operations)
 int[32] getkeydirective(int key[32]) {
@@ -49,191 +66,123 @@ int[32] getkeywidth(int key[32]) {
     return key_width[32];
 }
 
-// returns an array of divided-up values according to getkeywidth()'s return value
-int[] divider(int block[8], int width) {
-    int arraywidth = 64 / width;
+// add 1 to every n-bit blocks
+int[64] add(int block[64], int n) {
     
-    int modblock[arraywidth];
+    int i;
 
-    if (arraywidth >= 8) {
-        int i;
-
-        for (i = 0; i < 64 / arraywidth; i++) {
-            modblock[i] = block[i / 8];
-        }
-    } else if (arraywidth == 4) {
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            modblock[i] = block[i] & 240;
-            modblock[2 * i + 1] = block[i] & 15;
-        }
-    } else if (arraywidth == 2) {
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            modblock[i] = block[i] & 192;
-            modblock[4 * i + 1] = block[i] & 48;
-            modblock[4 * i + 2] = block[i] & 12;
-            modblock[4 * i + 3] = block[i] & 3;
-        } 
-    } else { // if arraywidth == 1
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            modblock[i] = block[i] & 128;
-            modblock[8 * i + 1] = block[i] & 64;
-            modblock[8 * i + 2] = block[i] & 32;
-            modblock[8 * i + 3] = block[i] & 16;
-            modblock[8 * i + 4] = block[i] & 8;
-            modblock[8 * i + 5] = block[i] & 4;
-            modblock[8 * i + 6] = block[i] & 2;
-            modblock[8 * i + 7] = block[i] & 1;
-        }
-    }
-
-    return modblock;
-}
-
-int[8] combinator(int block[8], int modblock[], int width) {
-    // combinator function
-    
-    if (width >= 8) {
-        int i;
-        
-        for (i = 0; i < 64 / width; i++) {
-            block[i / 8] = modblock[i];
-        }
-    } else if (width == 4) {
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            block[i] = modblock[2 * i] & 240
-              + modblock[2 * i + 1] & 15;
-        }
-    } else if (width == 2) {
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            block[i] = modblock[4 * i] & 192
-              + modblock[4 * i + 1] & 48
-              + modblock[4 * i + 2] & 12
-              + modblock[4 * i + 3] & 3;
-        }
-    } else {
-        int i;
-
-        for (i = 0; i < 8; i++) {
-            block[i] = modblock[8 * i] & 128 + modblock[8 * i + 1] & 64
-              + modblock[8 * i + 2] & 32
-              + modblock[8 * i + 3] & 16
-              + modblock[8 * i + 4] & 8
-              + modblock[8 * i + 5] & 4
-              + modblock[8 * i + 6] & 2
-              + modblock[8 * i + 7] & 1;
- 
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = (block[i] + 11) % 256; // the constant addition factor will in the end probably not be 11
         }
     }
 
     return block;
 }
 
-// add 1 to every n-bit blocks
-int[] add(int modblock[], int n) {
-
-    int i;
-    if (n >= 8) {
-        n = 8;
-    }
-
-    for (i = 0; i < 64 / n; i++) {
-        modblock[i] = (modblock[i] + 1) % pow(2, n)
-    }
-
-    return modblock;
-}
-
 // bitwise cycle to right
-int[] cycle(int modblock[], int n) {
-     
+int[64] cycle(int block[64], int n) {
+    
     int i;
 
-    for (i = 0; i < 64 / n; i++) {
-        modblock[i] = block >> 1;
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = block[i] >> 3; // final shifting constant will probably not be 3
+        }
     }
 
-    return modblock;
+    return block;
 }
 
 // reverse bit order
-int[] reverse(int modblock[], int n) {
+int[64] reverse(int block[64], int n) {
+ 
+    // this really could use a lot less memory
     
-    return modblock;
-}
-
-// split and rejoin in different order
-int[] split(int modblock[], int n) {
-    
-    return modblock;
-}
-
-// reverse operators
-
-// add
-int[] radd(int modblock[], int n) {
-
-    int i;
-    if (n >= 8) {
-        n = 8;
-    }
-
-    for (i = 0; i < 64 / n; i++) {
-        modblock[i] = (modblock[i] - 1) % pow(2, n) + pow(2, n);
-    }
-
-    return modblock;
-}
-
-// cycle
-int[] cycle(int modblock[], int n) {
-     
     int i;
 
-    for (i = 0; i < size; i++) {
-        modblock[i] = block << 1;
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = // some reverse method of block[i]; use a lookup table
+        }
     }
 
-    return modblock;
+    return block;
 }
 
-// reverse bit order
-int[] reverse(int modblock[], int n) {
+// split and rejoin in juxtaposition
+int[64] split(int block[64], int n) {
     
-    return modblock;
+    int i;
+
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = // some split method of block[i]; use a lookup table
+        }
+    }
 }
 
-// split and rejoin in different order
-int[] split(int modblock[], int n) {
+// inverse operations 
+int[64] radd(int block[64], int n) {
     
-    return modblock;
+    int i;
+
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = (block[i] - 11) % 256;
+        }
+    }
+
+    return block;
+}
+
+int[64] rcycle(int block[64], int n) {
+    
+    int i;
+
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = block[i] << 3;
+        }
+    }
+
+    return block;
+}
+
+int[64] rreverse(int block[64], int n) {
+    // for optimization later, this should be taken out entirely
+    block = reverse(block);
+
+    return block;
+}
+
+int[64] rsplit(int block[64], int n) {
+    
+    int i;
+
+    for (i = 0; i < 64; i++) {
+        if ((i - 1) % n == 0) {
+            block[i] = // some split method of block[i]; use a reverse lookup table
+        }
+    }
 }
 
 
 // G round
-int[8] G(int block[8], int key_directive[], int key_width[]) {
+int[64] G(int block[64], int key_directive[32], int key_width[32]) {
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
 
     int i;
 
     for (i = 0; i < key_size; i++) {
         if (key_directive[i] == 0) {
-            block = add(divider(block, key_width[i]), key_width[i]);
+            block = add(block, key_width[i]);
         } else if (key_directive[i] == 1) {
-            block = cycle(divider(block, key_width[i]), key_width[i]);
+            block = cycle(block, key_width[i]);
         } else if (key_directive[i] == 2) {
-            block = reverse(divider(block, key_width[i]), key_width[i]);
+            block = reverse(block, key_width[i]);
         } else if (key_directive[i] == 3) {
-            block = split(divider(block, key_width[i]), key_width[i]);
+            block = split(block, key_width[i]);
         }
     }
 
@@ -241,20 +190,20 @@ int[8] G(int block[8], int key_directive[], int key_width[]) {
 }
 
 // reverse G round
-int[8] RG(int block[8], int key_directive[], int key_width[]) { 
+int[64] RG(int block[64], int key_directive[32], int key_width[32]) { 
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
     
     int i;
 
     for (i = 0; i < key_size; i++) {
         if (key_directive[i] == 0) {
-            block = radd(divider(block, key_width[i]), key_width[i]);
+            block = radd(block, key_width[i]);
         } else if (key_directive[i] == 1) {
-            block = rcycle(divider(block, key_width[i]), key_width[i]);
+            block = rcycle(block, key_width[i]);
         } else if (key_directive[i] == 2) {
-            block = rreverse(divider(block, key_width[i]), key_width[i]);
+            block = rreverse(block, key_width[i]);
         } else if (key_directive[i] == 3) {
-            block = rsplit(divider(block, key_width[i]), key_width[i]);
+            block = rsplit(block, key_width[i]);
         }
     }
 
