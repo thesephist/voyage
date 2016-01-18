@@ -1,6 +1,9 @@
 #ifndef VOYAGE_H_
 #define VOYAGE_H_
 
+#include <time.h>
+#include <stdlib.h>
+
 /* HEADER FILE ROADMAP
  *
  * the 4 elementary functions each take an array of 64 bytes
@@ -16,12 +19,6 @@
  *
  */
 
-/*
- * We also need a keygen method of some kind that checks for trivial, easy-to-break keys and regens them
- */
-
-// using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
-
 static const unsigned char reverseTable[] = {
     // stuff here
 };
@@ -33,6 +30,20 @@ static const unsigned char splitTable[] = {
 static const unsigned char rsplitTable[] = {
     // stuff here
 };
+
+// key generator and validator
+// using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
+int[32] keygen() {
+    int key[32];
+    srand(time(NULL));
+ 
+    int i;
+    for (i = 0; i < 32; i++) {
+        key[i] = rand() % 255;
+    }
+
+    return key;
+}
 
 // return key_directives (list of one of 4 operations)
 int[32] getkeydirective(int key[32]) {
@@ -64,6 +75,29 @@ int[32] getkeywidth(int key[32]) {
     }
 
     return key_width[32];
+}
+
+int[64] getroundkey(int key[32]) {
+    // this is an ad-hoc created function
+    // and is subject to a lot of changes still
+
+    int volume;
+    int roundvolume;
+    int roundkey[64];
+    
+    volume = 0;
+
+    for (i = 0; i < 32; i++) {
+        volume += key[i];
+    }
+
+    roundvolume = (volume * 37) % 64; // this 37 is so arbitrary...
+
+    for (i = 0; i < 64; i++) {
+        roundkey[i] = key[(i + roundvolume) % 32];
+    }
+    
+    return roundkey;
 }
 
 // add 1 to every n-bit blocks
@@ -210,9 +244,38 @@ int[64] RG(int block[64], int key_directive[32], int key_width[32]) {
     return block;
 }
 
-// H round
-// Replace current buffer byte with byte of another buffer with offset
+// H and RH will be the same, as it is an XOR with a key with modifications
+int[64] H(int block[64], int key[32]) {
+    int roundkey[64];
 
-// reverse H round
+    roundkey = getroundkey(key);
+
+    // xor with roundkey
+    for (i = 0; i < 64; i++) {
+        block[i] = block[i] ^ roundkey[i];
+    }
+
+    return block;
+}
+
+int[64] encryptBlock(int block[64], int key[32]) {
+
+    block = G(block, getkeydirective(key), getkeywidth(key));
+
+    block = H(block, key);
+
+    return block;
+}
+
+int[64] decryptBlock(int block[64], int key[32]) {
+
+    block = H(block, key);
+
+    block = RG(block, getkeydirective(key), getkeywidth(key));
+
+    return block;
+}
+
+
 
 #endif // VOYAGE_H_
