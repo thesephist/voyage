@@ -3,7 +3,7 @@
 
 // runtime args
 var args = process.argv;
-var voyage = require('/home/thesephist/voyager/x-voyage.js');
+var voyage = require('../js/v.js');
 var options = [];
 var version = 0.5; // software version
 
