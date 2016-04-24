@@ -1,5 +1,5 @@
 // Instance-Specific Algorithm Composition encryption, or ISAC
-// Copyright Linus Lee 2015
+// Copyright Linus Lee 2015-2016
 
 var processing; // bit string in processing
 
