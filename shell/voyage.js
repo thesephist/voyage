@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Mediator for command-line Voyage / ISAC encryption
+// Mediator for command-line Voyage-X / ISAC0-X encryption script
 
 // runtime args
 var args = process.argv;
-var voyage = require('./vcrypt_lib.js');
+var voyage = require('/home/thesephist/voyager/x-voyage.js');
 var options = [];
 var version = 0.5; // software version
 
@@ -36,9 +36,6 @@ options.forEach(function(option){
         // process encryption key
         if (hasAlphabet(option[1])) {
             vkey = voyage.rs_w(option[1]);
-        } else if (option[1] == undefined) {
-            console.error("error: No key specified where there should be one");
-            process.exit(1);
         } else {
             vkey = option[1];
         }
@@ -53,7 +50,7 @@ options.forEach(function(option){
         // process message to be ingested
         message = option[1];
         if (option[1] == undefined) {
-            console.error("error: No payload or message specified");
+            console.error("ERROR: No payload or message specified");
             process.exit(1);
         }
     }
@@ -67,7 +64,7 @@ options.forEach(function(option){
     }
     if (option[0][0] == "h") {
         // display help and exit
-        console.log("Voyage / ISAC0 NodeJS Utility\n");
+        console.log("Voyage-X / ISAC0-X Node Console\n");
         console.log("    -k    --key [STRING], specifies a pre-generated encryption key\n");
         console.log("    -t    --type [STRING], specifies output type as either 'hex' or");
         console.log("            'binary'. This value defaults to 'hex'\n");
@@ -80,7 +77,7 @@ options.forEach(function(option){
     }
     if (option[0][0] == "v") {
         // display version number and exit
-        console.log("Voyage / ISAC0 (NodeJS): " + version);
+        console.log("Voyage-X / ISAC0-X Node Console Version: " + version);
         process.exit(0);
     }
     // Future options possibilities
@@ -88,12 +85,12 @@ options.forEach(function(option){
 });
 
 if (message == "") {
-    console.error("error: No payload or message specified");
+    console.error("ERROR: No payload or message specified");
     process.exit(1);
 }
 
 if (will_encrypt == false && vkey == "") {
-    console.error("error: No key specified for decryption operation");
+    console.error("ERROR: No key specified for decryption operation");
     process.exit(1);
 }
 

@@ -1,44 +1,61 @@
-// main code using voyage.c
+// main code using voyage.h
 
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
+
 #include "voyage.h"
 
-int main(void) {
+// encoding and decoding text in stdin/stdout
+int encode(char text[]) {
+        
+    int i = 0;
+    int encoded[ sizeof(text) / sizeof(text[0]) ];
+
+    while (text[i]) {
+        
+        encoded[i] = text[i];
+
+        i++;
+    }
+    
+    return encoded;
+}
+
+char decode(int encoded[]) {
+        
+    int i = 0;
+    char decoded[ sizeof(encoded) / sizeof(encoded[0]) ];
+
+    while (encoded[i]) {
+        
+        decoded[i] = encoded[i];
+
+        i++;
+    }
+    
+    return decoded;
+}
+
+// standard encryption and decryption functions
+// run encryptBlock and decryptBlock for each block in loop
+int encrypt(int plain[]) {
+
+}
+
+int  decrypt(int cipher[]) {
+
+}
+
+int main() {
 
     // Disable stdout buffering
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    // printf("Hello World\n");
-
-    // encoding and decoding text in stdin/stdout
-    int[] encode(char text[]) {
-        
-        return encoded;
-    }
-
-    char[] decode(int encoded[]) {
-
-        return decoded;
-    }
-
     // process flags
     // [en/decrypt, base64/hex, autogenerate key]
-    bool[3] flags() {
-
-        return flaglist;
-    }
-
-    /* this still clearly needs work
-     
-    buffer[] encrypt(buffer[]) {
-        
-    }
-
-    buffer[] decrypt(buffer[]) {
-
-    }
-
-    */
 
     return 0;
 }
+
+main();
+

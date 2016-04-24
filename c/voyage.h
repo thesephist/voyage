@@ -2,6 +2,7 @@
 #define VOYAGE_H_
 
 #include <time.h>
+#include <math.h>
 #include <stdlib.h>
 
 /* HEADER FILE ROADMAP
@@ -19,25 +20,21 @@
  *
  */
 
-static const unsigned char reverseTable[] = {
-    // stuff here
-};
-
-static const unsigned char splitTable[] = {
-    // stuff here
-};
-
-static const unsigned char rsplitTable[] = {
-    // stuff here
-};
+/*
+ * TODO:
+ * - finish split(n) with a lookup table
+ * - compile and debug
+ * - comprehensive testing on files before implementation
+ */
 
 // key generator and validator
 // using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
-int[32] keygen() {
+int keygen() {
     int key[32];
     srand(time(NULL));
  
     int i;
+
     for (i = 0; i < 32; i++) {
         key[i] = rand() % 255;
     }
@@ -46,7 +43,7 @@ int[32] keygen() {
 }
 
 // return key_directives (list of one of 4 operations)
-int[32] getkeydirective(int key[32]) {
+int getkeydirective(int key[32]) {
     int key_directive[32];
     
     int i;
@@ -56,11 +53,11 @@ int[32] getkeydirective(int key[32]) {
         key_directive[i] = floor(key[i] / 64.0f);
     }
 
-    return key_directive[32];
+    return key_directive;
 }
 
 // return key_width (operation bitwise widths)
-int[32] getkeywidth(int key[32]) {
+int getkeywidth(int key[32]) {
     int key_width[32];
 
     int i;
@@ -74,10 +71,10 @@ int[32] getkeywidth(int key[32]) {
         }
     }
 
-    return key_width[32];
+    return key_width;
 }
 
-int[64] getroundkey(int key[32]) {
+int getroundkey(int key[32]) {
     // this is an ad-hoc created function
     // and is subject to a lot of changes still
 
@@ -86,6 +83,8 @@ int[64] getroundkey(int key[32]) {
     int roundkey[64];
     
     volume = 0;
+    
+    int i;
 
     for (i = 0; i < 32; i++) {
         volume += key[i];
@@ -101,7 +100,7 @@ int[64] getroundkey(int key[32]) {
 }
 
 // add 1 to every n-bit blocks
-int[64] add(int block[64], int n) {
+int add(int block[64], int n) {
     
     int i;
 
@@ -115,7 +114,7 @@ int[64] add(int block[64], int n) {
 }
 
 // bitwise cycle to right
-int[64] cycle(int block[64], int n) {
+int cycle(int block[64], int n) {
     
     int i;
 
@@ -129,7 +128,7 @@ int[64] cycle(int block[64], int n) {
 }
 
 // reverse bit order
-int[64] reverse(int block[64], int n) {
+int reverse(int block[64], int n) {
  
     // this really could use a lot less memory
     
@@ -137,7 +136,9 @@ int[64] reverse(int block[64], int n) {
 
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
-            block[i] = // some reverse method of block[i]; use a lookup table
+            block[i] = (block[i] & 0xF0) >> 4 | (block[i] & 0x0F) << 4;
+            block[i] = (block[i] & 0xCC) >> 2 | (block[i] & 0x33) << 2;
+            block[i] = (block[i] & 0xAA) >> 1 | (block[i] & 0x55) << 1;
         }
     }
 
@@ -145,19 +146,19 @@ int[64] reverse(int block[64], int n) {
 }
 
 // split and rejoin in juxtaposition
-int[64] split(int block[64], int n) {
+int split(int block[64], int n) {
     
     int i;
 
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
-            block[i] = // some split method of block[i]; use a lookup table
+            // do what I did in the JS version, using bitwise or and sums
         }
     }
 }
 
 // inverse operations 
-int[64] radd(int block[64], int n) {
+int radd(int block[64], int n) {
     
     int i;
 
@@ -170,7 +171,7 @@ int[64] radd(int block[64], int n) {
     return block;
 }
 
-int[64] rcycle(int block[64], int n) {
+int rcycle(int block[64], int n) {
     
     int i;
 
@@ -183,27 +184,27 @@ int[64] rcycle(int block[64], int n) {
     return block;
 }
 
-int[64] rreverse(int block[64], int n) {
+int rreverse(int block[64], int n) {
     // for optimization later, this should be taken out entirely
-    block = reverse(block);
+    block = reverse(block, n);
 
     return block;
 }
 
-int[64] rsplit(int block[64], int n) {
+int rsplit(int block[64], int n) {
     
     int i;
 
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
-            block[i] = // some split method of block[i]; use a reverse lookup table
+            // do what I did in JS, using bitwise or
         }
     }
 }
 
 
 // G round
-int[64] G(int block[64], int key_directive[32], int key_width[32]) {
+int G(int block[64], int key_directive[32], int key_width[32]) {
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
 
     int i;
@@ -224,7 +225,7 @@ int[64] G(int block[64], int key_directive[32], int key_width[32]) {
 }
 
 // reverse G round
-int[64] RG(int block[64], int key_directive[32], int key_width[32]) { 
+int RG(int block[64], int key_directive[32], int key_width[32]) { 
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
     
     int i;
@@ -245,12 +246,14 @@ int[64] RG(int block[64], int key_directive[32], int key_width[32]) {
 }
 
 // H and RH will be the same, as it is an XOR with a key with modifications
-int[64] H(int block[64], int key[32]) {
+int H(int block[64], int key[32]) {
     int roundkey[64];
 
-    roundkey = getroundkey(key);
+    memcpy(roundkey, getroundkey(key), 64);
 
     // xor with roundkey
+    int i;
+
     for (i = 0; i < 64; i++) {
         block[i] = block[i] ^ roundkey[i];
     }
@@ -258,7 +261,7 @@ int[64] H(int block[64], int key[32]) {
     return block;
 }
 
-int[64] encryptBlock(int block[64], int key[32]) {
+int encryptBlock(int block[64], int key[32]) {
 
     block = G(block, getkeydirective(key), getkeywidth(key));
 
@@ -267,7 +270,7 @@ int[64] encryptBlock(int block[64], int key[32]) {
     return block;
 }
 
-int[64] decryptBlock(int block[64], int key[32]) {
+int decryptBlock(int block[64], int key[32]) {
 
     block = H(block, key);
 
@@ -275,7 +278,5 @@ int[64] decryptBlock(int block[64], int key[32]) {
 
     return block;
 }
-
-
 
 #endif // VOYAGE_H_
