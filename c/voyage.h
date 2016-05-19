@@ -20,13 +20,6 @@
  *
  */
 
-/*
- * TODO:
- * - finish split(n) with a lookup table
- * - compile and debug
- * - comprehensive testing on files before implementation
- */
-
 // key generator and validator
 // using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
 int keygen() {
@@ -152,7 +145,14 @@ int split(int block[64], int n) {
 
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
-            // do what I did in the JS version, using bitwise or and sums
+            block[i] = block[i] & 128
+                    + (block[i] & 8) * 8
+                    + (block[i] & 64) / 2
+                    + (block[i] & 4) * 4
+                    + (block[i] & 32) / 4
+                    + (block[i] & 2) * 2
+                    + (block[i] & 16) / 8
+                    + (block[i] & 1);
         }
     }
 }
@@ -197,8 +197,15 @@ int rsplit(int block[64], int n) {
 
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
-            // do what I did in JS, using bitwise or
-        }
+            block[i] = block[i] & 128
+                    + (block[i] & 32) * 2
+                    + (block[i] & 8) * 4
+                    + (block[i] & 2) * 8
+                    + (block[i] & 64) / 8
+                    + (block[i] & 16) / 4
+                    + (block[i] & 4) / 2
+                    + (block[i] & 1);
+         }
     }
 }
 

@@ -1,4 +1,6 @@
 // main code using voyage.h
+// compile with the following: 
+// gcc main.c voyage.h -lm -o voyage.out
 
 #include <stdio.h>
 #include <string.h>
