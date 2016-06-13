@@ -22,39 +22,40 @@
 
 // key generator and validator
 // using 256-bit keys, but this number is only reflected in getkeydirective() and getkeywidth() and G, H
-int keygen() {
+int * keygen() {
     int key[32];
     srand(time(NULL));
  
     int i;
-
     for (i = 0; i < 32; i++) {
-        key[i] = rand() % 255;
+        key[i] = rand() % 256;
     }
 
-    return key;
+    int *keyp;
+    keyp = &key;
+    return keyp;
 }
 
 // return key_directives (list of one of 4 operations)
-int getkeydirective(int key[32]) {
+int * getkeydirective(int *key) {
     int key_directive[32];
     
     int i;
-
     for (i = 0; i < 32; i++) {
         // Returns 0 for key byte value 0-63, 1 for 64-127, 2 for 128-191, 3 for 192-255
         key_directive[i] = floor(key[i] / 64.0f);
     }
 
-    return key_directive;
+    int *kd;
+    kd = &key_directive;
+    return kd;
 }
 
 // return key_width (operation bitwise widths)
-int getkeywidth(int key[32]) {
+int * getkeywidth(int *key) {
     int key_width[32];
 
     int i;
-
     for (i = 0; i < 32; i++) {
         // Returns modulus of 64 of a given key byte value
         key_width[i] = key[i] % 64;
@@ -64,10 +65,12 @@ int getkeywidth(int key[32]) {
         }
     }
 
-    return key_width;
+    int *kw;
+    kw = &key_width;
+    return kw;
 }
 
-int getroundkey(int key[32]) {
+int * getroundkey(int *key) {
     // this is an ad-hoc created function
     // and is subject to a lot of changes still
 
@@ -78,7 +81,6 @@ int getroundkey(int key[32]) {
     volume = 0;
     
     int i;
-
     for (i = 0; i < 32; i++) {
         volume += key[i];
     }
@@ -89,14 +91,15 @@ int getroundkey(int key[32]) {
         roundkey[i] = key[(i + roundvolume) % 32];
     }
     
+    int *rk;
+    rk = &roundkey;
     return roundkey;
 }
 
 // add 1 to every n-bit blocks
-int add(int block[64], int n) {
+int * add(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = (block[i] + 11) % 256; // the constant addition factor will in the end probably not be 11
@@ -107,10 +110,9 @@ int add(int block[64], int n) {
 }
 
 // bitwise cycle to right
-int cycle(int block[64], int n) {
+int * cycle(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = block[i] >> 3; // final shifting constant will probably not be 3
@@ -121,12 +123,11 @@ int cycle(int block[64], int n) {
 }
 
 // reverse bit order
-int reverse(int block[64], int n) {
+int * reverse(int *block, int n) {
  
     // this really could use a lot less memory
-    
-    int i;
 
+    int i;
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = (block[i] & 0xF0) >> 4 | (block[i] & 0x0F) << 4;
@@ -138,11 +139,9 @@ int reverse(int block[64], int n) {
     return block;
 }
 
-// split and rejoin in juxtaposition
-int split(int block[64], int n) {
+int * split(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = block[i] & 128
@@ -155,13 +154,14 @@ int split(int block[64], int n) {
                     + (block[i] & 1);
         }
     }
+
+    return block;
 }
 
 // inverse operations 
-int radd(int block[64], int n) {
+int * radd(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = (block[i] - 11) % 256;
@@ -171,10 +171,9 @@ int radd(int block[64], int n) {
     return block;
 }
 
-int rcycle(int block[64], int n) {
+int * rcycle(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = block[i] << 3;
@@ -184,17 +183,16 @@ int rcycle(int block[64], int n) {
     return block;
 }
 
-int rreverse(int block[64], int n) {
+int * rreverse(int *block, int n) {
     // for optimization later, this should be taken out entirely
     block = reverse(block, n);
 
     return block;
 }
 
-int rsplit(int block[64], int n) {
+int * rsplit(int *block, int n) {
     
     int i;
-
     for (i = 0; i < 64; i++) {
         if ((i - 1) % n == 0) {
             block[i] = block[i] & 128
@@ -207,15 +205,16 @@ int rsplit(int block[64], int n) {
                     + (block[i] & 1);
          }
     }
+
+    return block;
 }
 
 
 // G round
-int G(int block[64], int key_directive[32], int key_width[32]) {
+int * G(int *block, int *key_directive, int *key_width) {
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
 
     int i;
-
     for (i = 0; i < key_size; i++) {
         if (key_directive[i] == 0) {
             block = add(block, key_width[i]);
@@ -232,7 +231,7 @@ int G(int block[64], int key_directive[32], int key_width[32]) {
 }
 
 // reverse G round
-int RG(int block[64], int key_directive[32], int key_width[32]) { 
+int RG(int *block, int *key_directive, int *key_width) { 
     int key_size = sizeof(key_directive) / sizeof(key_directive[0]);
     
     int i;
@@ -253,7 +252,7 @@ int RG(int block[64], int key_directive[32], int key_width[32]) {
 }
 
 // H and RH will be the same, as it is an XOR with a key with modifications
-int H(int block[64], int key[32]) {
+int H(int *block, int *key) {
     int roundkey[64];
 
     memcpy(roundkey, getroundkey(key), 64);
@@ -268,7 +267,7 @@ int H(int block[64], int key[32]) {
     return block;
 }
 
-int encryptBlock(int block[64], int key[32]) {
+int encryptBlock(int *block, int *key) {
 
     block = G(block, getkeydirective(key), getkeywidth(key));
 
@@ -277,7 +276,7 @@ int encryptBlock(int block[64], int key[32]) {
     return block;
 }
 
-int decryptBlock(int block[64], int key[32]) {
+int decryptBlock(int *block, int *key) {
 
     block = H(block, key);
 
