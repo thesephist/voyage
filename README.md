@@ -1,5 +1,7 @@
 # Voyage
 
+[As of July 2017, all work on Voyage has stopped due to time reallocation in my work. Voyage is deprecated]
+
 Encryption library and protocol using a round of block-level bitwise operations with a sigle-block final round.
 
 ## Concept
